@@ -1,0 +1,19 @@
+{
+  "name": "task_manager",
+  "version": "0.0.1",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.1",
+    "lodash": "^4.17.21",
+    "mongodb": "^6.10.0",
+    "nodemon": "^3.1.7"
+  },
+  "main": "service.js",
+  "scripts": {
+    "start": "node service.js",
+    "test": "nodemon service.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
