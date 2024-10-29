@@ -28,18 +28,15 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" ,  "Accept": "application/json"},
                 body: JSON.stringify({login: login, pass: pass})
-            }).then((res) => {
-                const data = res;
+            })
+            const data = await res.json();
+            console.log(data);
             if(data['error']){
                 notice.textContent = data['error'];
             }
-            if(data['href']){
-                document.location.href = data['href'];
-            }
-            });
-            
-
-
+            if(data['redirect']){
+                document.location.href = data['redirect'];
+            };
         })
     </script>
 </body>

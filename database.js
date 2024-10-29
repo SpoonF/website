@@ -1,4 +1,5 @@
 const MongoClinet = require("mongodb").MongoClient;
+const objectId = require("mongodb").ObjectId;
 
 function createToken() {
     return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
@@ -10,15 +11,23 @@ class dbconnect {
     constructor() {
         this.client = new MongoClinet("mongodb://127.0.0.1:27017/");
     }
-    createUser(name, age){
-        this.client.connect().then(mongoClient=>{
-            console.log("Подключение установлено 1");
-            console.log(mongoClient.options.dbName);
-            mongoClient.close().then(() => {
-                console.log("Подключение зыкрыто 1");
-            })
-        })
+    async connection(){
+        try {
+            await this.client.connect();
+            console.log("Сервер ожидает подключения...");
+        }catch(err){
+            return console.log(err);
+        }
     }
+    // createUser(name, age){
+    //     this.client.connect().then(mongoClient=>{
+    //         console.log("Подключение установлено 1");
+    //         console.log(mongoClient.options.dbName);
+    //         mongoClient.close().then(() => {
+    //             console.log("Подключение зыкрыто 1");
+    //         })
+    //     })
+    // }
     async updateUser(){
         try{
             await this.clinet.connect();
@@ -39,75 +48,44 @@ class dbconnect {
             console.log("Подключение закрыто 2");
         }
     }
-    // authorizationUser(data){
-    //     var json = [];
-    //     this.client.connect().then(mclient=>{
-    //         const db = mclient.db("task_managerdb");
-    //         const users = db.collection("users");
-    //         const users_token = db.collection("users_token");
-
-    //         const user_data = users_token.findOne({user_agent: data["user_agent"], token: data["token"]});
-    //         if(user_data){
-    //             console.log(user_data);
-    //             console.log("Авторизация по токену прошла успешно");
-    //             json["href"] = "/";
-    //         }else if(!user_data){
-    //             const user = users.findOne({login: data["login"], password: data["password"]});
-    //             if(user){
-    //                 const token = createToken();
-    //                 users_token.insertOne({user_id: user["_id"],token: token, user_agent: data["useragent"]});
-    //                 console.log("Авторизация с созданием токена прошла успещно");
-    //                 json["token"] = token;
-    //             }else{
-    //                 console.log("Авторизация провалена");
-    //                 json["error"] = "Пользователь с такими данными не найден";
-    //             }
-    //         }
-    //         mclient.close().then(() => {
-    //             console.log("Подключение закрыто 2");
-    //             console.log(json);
-    //             return json;
-    //         })
-            
-    //     })
-        
-    // }
     async authorizationUser(data, result){
-        var json = [];
+        let users = this.client.db("task_manager").collection("users");
+        let users_token = this.client.db("task_manager").collection("users_token");
+        const user_data = await users_token.findOne({
+            user_agent: data["user_agent"], 
+            token: data["token"]
+        });
+
+        if(user_data){
+            console.log(user_data);
+            console.log("Авторизация по токену прошла успешно");
+            result({redirect: "/"});
+            return;
+        }
+
+        const user = await users.findOne({
+            login: data["login"], 
+            password: data["password"]
+        });
         console.log(data);
-        try{
-            await this.client.connect();
-
-            const db = this.client.db("task_managerdb");
-            const users = db.collection("users");
-            const users_token = db.collection("users_token");
-
-            const user_data = await users_token.findOne({user_agent: data["user_agent"], token: data["token"]});
-            if(user_data){
-                console.log(user_data);
-                console.log("Авторизация по токену прошла успешно");
-                json["href"] = "/";
-            }else if(!user_data){
-                const user = await users.findOne({login: data["login"], password: data["password"]});
-                if(user){
-                    const token = createToken();
-                    await users_token.insertOne({user_id: user["_id"],token: token, user_agent: data["useragent"]});
-                    console.log("Авторизация с созданием токена прошла успещно");
-                    json["token"] = token;
-                }else{
-                    console.log("Авторизация провалена");
-                    json["error"] = "Пользователь с такими данными не найден";
-                }
-            }
+        if(user){
+            const token = createToken();
+            await users_token.insertOne({
+                user_id: user["_id"],
+                token: token, 
+                user_agent: data["useragent"]
+            });
+            console.log("Авторизация с созданием токена прошла успещно");
+            result({redirect: "/", token: token});
+            return;
         }
-        catch(err){
-            console.log(err);
-        } finally {
-            await this.client.close();
-            console.log("Подключение закрыто 2");
-            console.log(json);
-            return json;
-        }
+
+        console.log("Авторизация провалена");
+        result({error: "Пользователь с такими данными не найден"});
+        return;
+    }
+    async close(){
+        await this.client.close();
     }
 }
         
