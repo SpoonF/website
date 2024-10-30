@@ -17,6 +17,7 @@
         <p id="notice"></p>
         <input type="submit" value="Войти">
     </form>
+    <a id="createUser">Создать юзера</a>
     <script>
         const form = document.getElementById('auth');
         const notice = document.getElementById('notice');
@@ -37,6 +38,17 @@
             if(data['redirect']){
                 document.location.href = data['redirect'];
             };
+        })
+        const userCreateButton = document.getElementById("createUser");
+        userCreateButton.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const res = await fetch("users/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" ,  "Accept": "application/json"},
+                body: JSON.stringify({login: "login", password: "pass"})
+            })
+            const data = await res.json();
+            console.log(data["message"]);
         })
     </script>
 </body>

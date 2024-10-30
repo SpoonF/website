@@ -1,45 +1,43 @@
 const express = require("express");
-const db = require("./database");
 const cookieParse = require('cookie-parser');
-
+const MongoClinet = require('mongodb').MongoClient;
 
 const app = express();
-const fs = require("fs");
-const jsonParser = express.json();
 
 app.use(express.static("public/html"));
 app.use(express.static("public/styles"));
 app.use("script",express.static("public/scripts"));
-app.use(cookieParse('grishagey'));
+app.use(express.json());
+app.use(cookieParse('alonso'));
 
-
-const _db = new db();
-_db.connection();
-
-
-
-app.post("/authorization", jsonParser, async(request, response) => {
-    if(request.body.login == "" && request.body.password == ""){
-        response.json({error: "Введите данные"});
+const clientDB = new MongoClinet("mongodb://127.0.0.1:27017/");
+(async () => {
+    try{
+        await clientDB.connect();
+        app.locals.users = clientDB.db("task_manager").collection("users");
+        app.locals.users_token = clientDB.db("task_manager").collection("users_token");
+        app.listen(3000);
+        console.log("Сервер ожидает запросов");
+    }catch(error){
+        console.log(error)
     }
 
-    let data = {
-        login: request.body.login,
-        password: request.body.pass,
-        useragent: request.headers["user-agent"],
-        token: request.cookies.token
-    }
+})()
 
-    await _db.authorizationUser(data, (result) => {
-        if(result["token"]){
-            response.cookie("token",result["token"]);
-        }
-        response.json(result);
-    })
-})
-app.listen(3000);
+
+const userRouter = require("./routes/user");
+const homeRouter = require("./routes/home");
+
+app.use("/users", userRouter);
+app.use("/", homeRouter);
+
+app.use(function (req, res, next) {
+    res.status(404).send("Not Found")
+});
+
 process.on("SIGINT", async() =>{
-    await _db.close();
+    // await _db.close();
+    await clientDB.close();
     console.log("Приложение завершило работу");
     process.exit();
 })
