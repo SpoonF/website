@@ -1,27 +1,25 @@
-const Users = require("../models/user.js");
-const Roles = require("../models/roles.js");
+const Tasks = require("../models/tasks.js");
+const TaskTypes = require("../models/tasks_types.js");
 
-const error = [];
-
-exports.postUser = async(request,response) => {
-    const userRole = await Roles.findOne({rolename : 'User'});
-    const user = {
+exports.postTask = async(request,response) => {
+    const taskType = await TaskTypes.findOne({rolename : 'User'});
+    const task = {
         username: request.body.username,
         password: request.body.password,
         email: request.body.email,
-        role: userRole._id,
+        role: taskType._id,
         created_at: new Date()
     }
-    const result = await Users.create(user);
-    response.status(201).send({user: result});
+    const result = await Tasks.create(task);
+    response.status(201).send({task: result});
 };
 
-exports.getUser = async(request,response) => {
+exports.getTask = async(request,response) => {
     if(request.params.userId.length !== 24){
         response.status(404).send('Not found');
         return;
     }
-    const result = await Users.findById(request.params.userId).exec();
+    const result = await Tasks.findById(request.params.userId).exec();
     if(result === null){
         response.status(404).send('Not found');
         return;
@@ -29,7 +27,7 @@ exports.getUser = async(request,response) => {
     response.status(200).send({user: result});
 }
 
-exports.getUsers = async(request,response) => {
+exports.getTasks = async(request,response) => {
 
     let result = await filter(request.query);
     
@@ -41,12 +39,12 @@ exports.getUsers = async(request,response) => {
     }
 }
 
-exports.deleteUser = async(request,response) => {
-    if(request.params.userId.length !== 24){
+exports.deleteTask = async(request,response) => {
+    if(request.params.taskId.length !== 24){
         response.status(404).send('Not found');
         return;
     }
-    const result = await Users.findByIdAndDelete(request.params.userId).exec();
+    const result = await Tasks.findByIdAndDelete(request.params.taskId).exec();
     if(result === null){
         response.status(404).send('Not found');
         return;
@@ -54,12 +52,12 @@ exports.deleteUser = async(request,response) => {
     response.sendStatus(204);
 }
 
-exports.putUser = async(request,response) => {
-    if(request.params.userId.length !== 24){
+exports.putTask = async(request,response) => {
+    if(request.params.taskId.length !== 24){
         response.status(404).send('Not found');
         return;
     }
-    let user = await Users.findByIdAndDelete(request.params.userId);
+    let user = await Tasks.findByIdAndDelete(request.params.taskId);
     if(user === null){
         response.status(404).send('Not found');
         return;
@@ -71,7 +69,7 @@ exports.putUser = async(request,response) => {
         email: request.body.email,
         update_at: new Date()
     }
-    const result = await Users.create(user);
+    const result = await Tasks.create(user);
     response.sendStatus(204);
 }
 
@@ -85,8 +83,8 @@ async function filter(params){
         let query = params.orderby;
         let key = Object.keys(query)[0];
         query[key] = orderby[query[key]];
-        return await Users.find().sort(query);
+        return await Tasks.find().sort(query);
     }
 
-    return await Users.find({});
+    return await Tasks.find({});
 }
