@@ -1,92 +1,57 @@
-const Users = require("../models/user.js");
-const Roles = require("../models/roles.js");
+const User = require('../models/user')
+
+
 
 const error = [];
 
 exports.postUser = async(request,response) => {
-    const userRole = await Roles.findOne({rolename : 'User'});
-    const user = {
-        username: request.body.username,
-        password: request.body.password,
-        email: request.body.email,
-        role: userRole._id,
-        created_at: new Date()
-    }
-    const result = await Users.create(user);
-    response.status(201).send({user: result});
+
+    const result = await User.createOne(request.body);
+    console.log(result);
+    response.status(201).send(result);
 };
 
 exports.getUser = async(request,response) => {
-    if(request.params.userId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    const result = await Users.findById(request.params.userId).exec();
-    if(result === null){
-        response.status(404).send('Not found');
-        return;
-    }
-    response.status(200).send({user: result});
+    const { userId } = request.params;
+    const result = await User.getOne(userId);
+
+    console.log(result);
+
+    const data = {users: result};
+
+    response.status(200).send(data);
 }
 
 exports.getUsers = async(request,response) => {
+    const result = await User.getAll();
 
-    let result = await filter(request.query);
-    
+    console.log(result);
 
-    if(result.length){
-        response.status(200).send({users: result});
-    }else{
-        response.sendStatus(404);
-    }
+    const data = {users: result};
+
+    response.status(200).send(data);
 }
 
 exports.deleteUser = async(request,response) => {
-    if(request.params.userId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    const result = await Users.findByIdAndDelete(request.params.userId).exec();
-    if(result === null){
-        response.status(404).send('Not found');
-        return;
-    }
+    const { userId } = request.params;
+
+    const result = await User.deleteOne(userId);
+
+    console.log(result);
+
+    const data = {users: result};
+
     response.sendStatus(204);
 }
 
 exports.putUser = async(request,response) => {
-    if(request.params.userId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    let user = await Users.findByIdAndDelete(request.params.userId);
-    if(user === null){
-        response.status(404).send('Not found');
-        return;
-    }
-    user = {
-        ...user._doc,
-        username: request.body.username,
-        password: request.body.password,
-        email: request.body.email,
-        update_at: new Date()
-    }
-    const result = await Users.create(user);
+    const { userId } = request.params;
+
+    const result = await User.updateOne(userId, request.body);
+
+    console.log(result);
+
+    const data = {users: result};
+
     response.sendStatus(204);
-}
-
-async function filter(params){
-    if(params.orderby){
-        const orderby = {
-            "ASC": 1,
-            "DESC": -1
-        }
-        
-        let query = params.orderby;
-        let key = Object.keys(query)[0];
-        query[key] = orderby[query[key]];
-        return await Users.find().sort(query);
-    }
-
-    return await Users.find({});
 }

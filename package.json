@@ -7,6 +7,7 @@
     "lodash": "^4.17.21",
     "mongodb": "^6.10.0",
     "mongoose": "^8.9.0",
+    "mysql2": "^3.11.5",
     "nodemon": "^3.1.7"
   },
   "main": "service.js",

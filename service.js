@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParse = require('cookie-parser');
+const { dbConnection, dbDisconection } = require('./database/database')
 
 const mongoose = require("mongoose");
 
@@ -23,9 +24,10 @@ app.use(function (req, res, next) {
 });
 
 
+
 (async () => {
     try{
-        await mongoose.connect("mongodb://127.0.0.1:27017/task_manager");
+        dbConnection();
         app.listen(3000);
         console.log("Сервер ожидает подключения...");
     }
@@ -35,8 +37,11 @@ app.use(function (req, res, next) {
 })()
 
 
+
+
 process.on("SIGINT", async() =>{
-    await mongoose.disconnect();
+    // await mongoose.disconnect();
+    dbDisconection();
     console.log("Приложение завершило работу");
     process.exit();
 })

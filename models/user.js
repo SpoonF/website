@@ -1,13 +1,65 @@
-const mongoose = require("mongoose");
+const { connection } = require('../database/database')
  
-const Schema = mongoose.Schema;
+class User {
+    static async createOne(user) {
+        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let { username, email, password } = user;
+        let query = `INSERT INTO users (username, email, password, update_at, created_at) VALUES('${username}', '${email}', '${password}', '${date}', '${date}')`;
 
-const usersScheme = new Schema({
-    username: String,
-    password: String,
-    email: String,
-    role: String,
-    created_at: Date,
-    update_at: Date,
-});
-module.exports = mongoose.model("Users", usersScheme);
+        let result;
+        result = await connection.query(query).then(result => {
+            return result[0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+    static async getAll() {
+        let query = `SELECT * FROM users`;
+        let result;
+        result = await connection.query(query).then(result => {
+            return result[0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+    static async getOne(id) {
+        let query = `SELECT * FROM users WHERE id =` + id;
+        let result;
+        result = await connection.query(query).then(result => {
+            return result[0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+    static async updateOne(id, userData) {
+        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let { username, email, password } = userData;
+
+        let query = `UPDATE users SET username = ?, email =  ?, email =  ?, update_at = '${date}' WHERE id = ${ id }`;
+
+
+        let result;
+        result = await connection.query(query, [ username, email, password ]).then(result => {
+            return result[0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+    static async deleteOne(id) {
+        let query = `DELETE FROM users WHERE id =` + id;
+        let result;
+        result = await connection.query(query).then(result => {
+            return result[0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+}
+
+
+module.exports = User;
