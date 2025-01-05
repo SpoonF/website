@@ -7,6 +7,7 @@ const connection = mysql.createConnection({
     database: "taskmanager",
     password: "123456"
 }).promise();
+
 const dbConnection = () => {
     connection.connect((error) => {
         if(error){

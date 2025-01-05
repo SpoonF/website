@@ -1,90 +1,74 @@
-const Tasks = require("../models/tasks.js");
-const TaskTypes = require("../models/tasks_types.js");
+const Task = require('../models/tasks');
+const Tags = require('../models/tags');
 
-exports.postTask = async(request,response) => {
-    const taskType = await TaskTypes.findOne({rolename : 'User'});
-    const task = {
-        username: request.body.username,
-        password: request.body.password,
-        email: request.body.email,
-        role: taskType._id,
-        created_at: new Date()
+
+
+
+
+exports.postTask = async( request, response ) => {
+    let info = {
+        taskId: "",
+        tags: []
+    };
+    let result;
+    result = await Task.createOne( request.body );
+    info['taskId'] = result;
+    
+    if('tags' in request.body){
+        for(let value of request.body['tags']){
+            result = await Tags.createOne( value );
+            info['tags'].push(result[0]);
+        }
     }
-    const result = await Tasks.create(task);
-    response.status(201).send({task: result});
+    
+    result = await Task.addTags(info['taskId']['insertId'], info['tags']);
+    console.log( result );
+
+    response.status(201).send( info );
 };
 
-exports.getTask = async(request,response) => {
-    if(request.params.userId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    const result = await Tasks.findById(request.params.userId).exec();
-    if(result === null){
-        response.status(404).send('Not found');
-        return;
-    }
-    response.status(200).send({user: result});
+exports.getTask = async( request, response ) => {
+    const { userId } = request.params;
+    const result = await Task.getOne( userId );
+
+    console.log( result );
+
+    const data = { users: result };
+
+    response.status(200).send( data );
 }
 
-exports.getTasks = async(request,response) => {
+exports.getTasks = async( request, response ) => {
+    const result = await Task.getAll();
 
-    let result = await filter(request.query);
-    
+    console.log( result );
 
-    if(result.length){
-        response.status(200).send({users: result});
-    }else{
-        response.sendStatus(404);
-    }
+    const data = { users: result };
+
+    response.status(200).send( data );
 }
 
-exports.deleteTask = async(request,response) => {
-    if(request.params.taskId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    const result = await Tasks.findByIdAndDelete(request.params.taskId).exec();
-    if(result === null){
-        response.status(404).send('Not found');
-        return;
-    }
+exports.deleteTask = async( request, response ) => {
+    const { userId } = request.params;
+
+    const result = await Task.deleteOne( userId );
+
+    console.log( result );
+
+    const data = { users: result };
+
     response.sendStatus(204);
 }
 
-exports.putTask = async(request,response) => {
-    if(request.params.taskId.length !== 24){
-        response.status(404).send('Not found');
-        return;
-    }
-    let user = await Tasks.findByIdAndDelete(request.params.taskId);
-    if(user === null){
-        response.status(404).send('Not found');
-        return;
-    }
-    user = {
-        ...user._doc,
-        username: request.body.username,
-        password: request.body.password,
-        email: request.body.email,
-        update_at: new Date()
-    }
-    const result = await Tasks.create(user);
+exports.putTask = async( request, response ) => {
+    const { userId } = request.params;
+
+    const result = await User.updateOne( userId, request.body );
+
+    console.log( result );
+
+    const data = { users: result };
+
     response.sendStatus(204);
 }
 
-async function filter(params){
-    if(params.orderby){
-        const orderby = {
-            "ASC": 1,
-            "DESC": -1
-        }
-        
-        let query = params.orderby;
-        let key = Object.keys(query)[0];
-        query[key] = orderby[query[key]];
-        return await Tasks.find().sort(query);
-    }
-
-    return await Tasks.find({});
-}
