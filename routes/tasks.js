@@ -1,14 +1,17 @@
 const express = require("express");
 const tasksController = require("../controllers/tasks.js");
+const { jwtMiddleware } = require("../tools/jwtMiddleware.js");
 const tasksRouter = express.Router();
 
-tasksRouter.post("/", tasksController.postTask);
+// tasksRouter.use("/", tasksController.authorize);
 
-tasksRouter.get("/", tasksController.getTasks);
-tasksRouter.get("/:taskId", tasksController.getTask);
+tasksRouter.post("/", jwtMiddleware, tasksController.postTask);
 
-tasksRouter.delete("/:taskId", tasksController.deleteTask);
+tasksRouter.get("/", jwtMiddleware, tasksController.getTasks);
+tasksRouter.get("/:taskId", jwtMiddleware, tasksController.getTask);
 
-tasksRouter.put("/:taskId", tasksController.putTask);
+tasksRouter.delete("/:taskId", jwtMiddleware, tasksController.deleteTask);
+
+tasksRouter.put("/:taskId", jwtMiddleware, tasksController.putTask);
 
 module.exports = tasksRouter;

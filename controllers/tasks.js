@@ -1,5 +1,6 @@
 const Task = require('../models/tasks');
 const Tags = require('../models/tags');
+const Session = require('../models/session');
 
 
 
@@ -72,3 +73,19 @@ exports.putTask = async( request, response ) => {
     response.sendStatus(204);
 }
 
+
+exports.authorize = async (request, response, next) => {
+    const sessionId = request.headers.cookie?.split("=")[1];
+
+    if(!sessionId){
+        return response.status(403).send('not authecation request');
+    }
+
+    let result = await Session.getSessionByToken(sessionId);
+
+    if(Object.keys(result[0]).length) {
+        next();
+    }else {
+        return response.status(403).send('not authecation request');
+    }
+}

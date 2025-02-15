@@ -24,7 +24,7 @@ class User {
         })
         return result;
     }
-    static async getOne(id) {
+    static async getUserById(id) {
         let query = `SELECT * FROM users WHERE id =` + id;
         let result;
         result = await connection.query(query).then(result => {
@@ -34,6 +34,26 @@ class User {
         })
         return result;
     }
+    static async getUser(data = null) {
+
+        let query = `SELECT * FROM users`;
+
+        if("where" in data) {
+            query += ` WHERE `;
+            query += data.where?.username ? `username = '${ data.where?.username }' `: null;
+        }
+
+        query += 'LIMIT 1';
+
+        let result;
+        result = await connection.query(query).then(result => {
+            return result[0][0];
+        }).catch(error => {
+            return error;
+        })
+        return result;
+    }
+
     static async updateOne(id, userData) {
         let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let { username, email, password } = userData;

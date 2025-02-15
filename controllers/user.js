@@ -13,11 +13,11 @@ exports.postUser = async(request,response) => {
 
 exports.getUser = async(request,response) => {
     const { userId } = request.params;
-    const result = await User.getOne(userId);
+    const result = await User.getUserById(userId);
 
     console.log(result);
 
-    const data = {users: result};
+    const data = {user: result[0]};
 
     response.status(200).send(data);
 }
